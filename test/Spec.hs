@@ -20,7 +20,7 @@ test_data = BL.readFile "test/sample.FDR"
 reddit = do
   d <- test_data
   let l = parse_log d
-  assertEqual "" 2 (trace (show l) length l)
+  assertEqual "" [4436, 291] $ trace (show l) $ map (\x -> length $ colVals x) l
 
 tests = [
   testCase "read the data" reddit

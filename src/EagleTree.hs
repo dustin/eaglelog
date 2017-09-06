@@ -1,9 +1,8 @@
 module EagleTree
     ( parse_log
-    , Session
+    , Session(..)
     ) where
 
-import Debug.Trace
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
@@ -39,5 +38,5 @@ parse_log :: BL.ByteString -> [Session]
 parse_log f = let l = dropWhile (\l -> BL.unpack l /= "All Sessions") $ clean_lines f
                   (shdr, rest) = parse_headers (drop 2 l)
                   fields = Map.fromList $ zip (map BL.unpack $ BL.words $ head rest) [0..]
-                  readings = tail rest in
-                map (\ (SessionHeader (f, t, n)) -> Session n fields $ (take (t-f)) . drop f $ map BL.unpack rest ) shdr
+                  readings = map BL.unpack $ tail rest in
+                map (\ (SessionHeader (f, t, n)) -> Session n fields $ (take (t-f)) . drop f $ readings) shdr
