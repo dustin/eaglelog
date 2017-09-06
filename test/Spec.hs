@@ -11,6 +11,8 @@ import Test.QuickCheck.Arbitrary
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BL
 
+import Debug.Trace
+
 import EagleTree
 
 test_data = BL.readFile "test/sample.FDR"
@@ -18,7 +20,7 @@ test_data = BL.readFile "test/sample.FDR"
 reddit = do
   d <- test_data
   let l = parse_log d
-  assertEqual "" 4728 l
+  assertEqual "" 2 (trace (show l) length l)
 
 tests = [
   testCase "read the data" reddit
