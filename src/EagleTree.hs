@@ -9,8 +9,6 @@ import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
 import Data.Char (isSpace)
 
-rstrip = reverse . dropWhile isSpace . reverse
-
 data SessionHeader = SessionHeader (Int, Int, String) deriving (Show)
 
 data Session = Session { name :: String
