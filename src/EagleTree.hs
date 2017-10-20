@@ -26,7 +26,7 @@ instance Show Session where
   show (Session n cn cv) =
     n ++ " cols=" ++ show cn ++ ", " ++ show (length cv) ++ " readings"
 
-cleanLines l = map (BL.filter ('\r' /=)) $ BL.lines l
+cleanLines = map (BL.filter ('\r' /=)) . BL.lines
 
 readbs :: Read a => [BL.ByteString] -> Int -> a
 readbs l i = read $ BL.unpack $ l !! i
