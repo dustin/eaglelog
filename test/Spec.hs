@@ -1,6 +1,5 @@
 import System.Environment (getArgs)
 import Test.Framework (defaultMainWithOpts, interpretArgsOrExit, testGroup)
-import Test.Framework (defaultMainWithOpts, interpretArgsOrExit, testGroup)
 import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.Runners.Options
@@ -19,8 +18,8 @@ test_data = BL.readFile "test/sample.FDR"
 
 reddit = do
   d <- test_data
-  let l = parse_log d
-  assertEqual "" [4436, 291] $ trace (show l) $ map (\x -> length $ colVals x) l
+  let l = parseLog d
+  assertEqual "" [4436, 291] $ trace (show l) $ map (length.colVals) l
 
 tests = [
   testCase "read the data" reddit
