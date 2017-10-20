@@ -15,6 +15,12 @@ data Session = Session { name :: String
                        , colVals :: [String]
                        }
 
+column :: (String -> t) -> String -> Session -> [t]
+column f name (Session _ names vals) =
+  case Map.lookup name names of
+    Nothing -> []
+    Just x -> map (f . (!! x) . words) vals
+
 instance Show Session where
   show (Session n cn cv) =
     n ++ " cols=" ++ (show cn) ++ ", " ++ (show $ length cv) ++ " readings"
