@@ -10,8 +10,6 @@ import Test.QuickCheck.Arbitrary
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BL
 
-import Debug.Trace
-
 import EagleTree
 
 test_data = BL.readFile "test/sample.FDR"
@@ -22,7 +20,7 @@ intColumn l = assertEqual "" (replicate 3 1486) $ take 3 $ column read "PackVolt
 
 floatColumn l = assertEqual "" (replicate 3 "0.0") $ take 3 $ column id "GPSDist" (last l)
 
-reddit l = assertEqual "" [4436, 291] $ trace (show l) $ map (length.colVals) l
+reddit l = assertEqual "" [4436, 291] $ map (length.colVals) l
 
 tests = [
   testCase "read the data" $ td reddit,
