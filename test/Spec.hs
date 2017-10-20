@@ -16,10 +16,19 @@ import EagleTree
 
 test_data = BL.readFile "test/sample.FDR"
 
+stringColumn l = assertEqual "" (replicate 3 "1486") $ take 3 $ column id "PackVolt*100" (last l)
+
+intColumn l = assertEqual "" (replicate 3 1486) $ take 3 $ column read "PackVolt*100" (last l)
+
+floatColumn l = assertEqual "" (replicate 3 "0.0") $ take 3 $ column id "GPSDist" (last l)
+
 reddit l = assertEqual "" [4436, 291] $ trace (show l) $ map (length.colVals) l
 
 tests = [
-  testCase "read the data" $ td reddit
+  testCase "read the data" $ td reddit,
+  testCase "string column" $ td stringColumn,
+  testCase "int column" $ td intColumn,
+  testCase "float column" $ td floatColumn
   ]
   where td f = test_data >>= \d -> f (parseLog d)
 
