@@ -16,13 +16,15 @@ import EagleTree
 
 test_data = BL.readFile "test/sample.FDR"
 
-reddit = do
+withTestData :: ([Session] -> IO ()) -> IO ()
+withTestData f = do
   d <- test_data
-  let l = parseLog d
-  assertEqual "" [4436, 291] $ trace (show l) $ map (length.colVals) l
+  f (parseLog d)
+
+reddit l = assertEqual "" [4436, 291] $ trace (show l) $ map (length.colVals) l
 
 tests = [
-  testCase "read the data" reddit
+  testCase "read the data" $ withTestData reddit
   ]
 
 main = do opts <- interpretArgsOrExit =<< getArgs
