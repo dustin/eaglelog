@@ -14,18 +14,18 @@ import EagleTree
 
 test_data = BL.readFile "test/sample.FDR"
 
-stringColumn l = assertEqual "" (replicate 3 "1486") $ take 3 $ column id "PackVolt*100" (last l)
+testStringColumn l = assertEqual "" (replicate 3 "1486") $ take 3 $ column id "PackVolt*100" (last l)
 
-intColumn l = assertEqual "" (replicate 3 1486) $ take 3 $ column read "PackVolt*100" (last l)
+testIntColumn l = assertEqual "" (replicate 3 1486) $ take 3 $ intColumn "PackVolt*100" (last l)
 
-floatColumn l = assertEqual "" (replicate 3 "0.0") $ take 3 $ column id "GPSDist" (last l)
+testFloatColumn l = assertEqual "" (replicate 3 0.0) $ take 3 $ floatColumn "GPSDist" (last l)
 
 testColNames l = assertEqual "" ["Aileron_In","Aileron_Out","Airspeed"] $ take 3 $ colNames (last l)
 
 tests = [
-  testCase "string column" $ td stringColumn,
-  testCase "int column" $ td intColumn,
-  testCase "float column" $ td floatColumn,
+  testCase "string column" $ td testStringColumn,
+  testCase "int column" $ td testIntColumn,
+  testCase "float column" $ td testFloatColumn,
   testCase "column names" $ td testColNames
   ]
   where td f = test_data >>= \d -> f (parseLog d)

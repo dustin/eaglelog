@@ -1,6 +1,8 @@
 module EagleTree
     ( parseLog
     , column
+    , intColumn
+    , floatColumn
     , colNames
     , Session
     ) where
@@ -22,6 +24,12 @@ column f name (Session _ names vals) =
   case Map.lookup name names of
     Nothing -> []
     Just x -> map (f . (!! x) . words) vals
+
+intColumn :: String -> Session -> [Int]
+intColumn = column read
+
+floatColumn :: String -> Session -> [Float]
+floatColumn = column read
 
 colNames :: Session -> [String]
 colNames = Map.keys.colNames_
