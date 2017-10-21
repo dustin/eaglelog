@@ -25,7 +25,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
 import Data.Char (isSpace)
-import Data.List (zip7)
+import Data.List (zipWith7)
 
 newtype SessionHeader = SessionHeader (Int, Int, String) deriving (Show)
 
@@ -72,11 +72,10 @@ data ETGPSData = ETGPSData { gpsLat :: Double
 -- | Get relevant GPS data from the session.
 gpsData :: Session -> [ETGPSData]
 gpsData s@(Session _ names vals) =
-  map mk $ zip7 (fdc "GPSLat") (fdc "GPSLon") (ffc "GPSAlt") (ffc "GPSSpeed")
-                (ffc "GPSCourse") (ffc "GPSDist") (intColumn "NumSats" s)
+  zipWith7 ETGPSData (fdc "GPSLat") (fdc "GPSLon") (ffc "GPSAlt") (ffc "GPSSpeed")
+                     (ffc "GPSCourse") (ffc "GPSDist") (intColumn "NumSats" s)
   where fdc = flip doubleColumn s
         ffc = flip floatColumn s
-        mk (a,b,c,d,e,f,g) = ETGPSData a b c d e f g
 
 -- | Retrieve a list of all possible column names.
 colNames :: Session -> [String]
