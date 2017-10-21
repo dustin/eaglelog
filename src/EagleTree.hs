@@ -74,8 +74,8 @@ gpsData :: Session -> [ETGPSData]
 gpsData s@(Session _ names vals) =
   zipWith7 ETGPSData (fdc "GPSLat") (fdc "GPSLon") (ffc "GPSAlt") (ffc "GPSSpeed")
                      (ffc "GPSCourse") (ffc "GPSDist") (fromRight $ intColumn "NumSats" s)
-  where fdc = fromRight . (flip doubleColumn) s
-        ffc = fromRight . (flip floatColumn) s
+  where fdc = fromRight . flip doubleColumn s
+        ffc = fromRight . flip floatColumn s
         fromRight (Left x) = error (show x)
         fromRight (Right x) = x
 
