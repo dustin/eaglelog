@@ -30,6 +30,10 @@ data Session = Session { name :: String
                        , colVals :: [String]
                        }
 
+instance Show Session where
+  show (Session n cn cv) =
+    n ++ " cols=" ++ show cn ++ ", " ++ show (length cv) ++ " readings"
+
 -- | Return the values of a named column while performing arbitrary
 -- conversion on the input.
 --
@@ -51,10 +55,6 @@ floatColumn = column read
 -- | Retrieve a list of all possible column names.
 colNames :: Session -> [String]
 colNames = Map.keys.colNames_
-
-instance Show Session where
-  show (Session n cn cv) =
-    n ++ " cols=" ++ show cn ++ ", " ++ show (length cv) ++ " readings"
 
 -- | Parse a log from a `BL.ByteString`.
 parseLog :: BL.ByteString -> [Session]
