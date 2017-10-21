@@ -24,7 +24,6 @@ module EagleTree
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
-import Data.Maybe
 import Data.Char (isSpace)
 import Data.List (zipWith7)
 
@@ -43,22 +42,22 @@ instance Show Session where
 -- conversion on the input.
 --
 -- See `intColumn` and `floatColumn` for common use cases.
-column :: (String -> t) -> String -> Session -> Maybe [t]
+column :: (String -> t) -> String -> Session -> Either String [t]
 column f name (Session _ names vals) =
   case Map.lookup name names of
-    Nothing -> Nothing
-    Just x -> Just $ map (f . (!! x) . words) vals
+    Nothing -> Left $ "invalid column name: " ++ name
+    Just x -> Right $ map (f . (!! x) . words) vals
 
 -- | Return the values of a named column as ints.
-intColumn :: String -> Session -> Maybe [Int]
+intColumn :: String -> Session -> Either String [Int]
 intColumn = column read
 
 -- | Return the values of a named column as floats.
-floatColumn :: String -> Session -> Maybe [Float]
+floatColumn :: String -> Session -> Either String [Float]
 floatColumn = column read
 
 -- | Return the values of a named column as doubles.
-doubleColumn :: String -> Session -> Maybe [Double]
+doubleColumn :: String -> Session -> Either String [Double]
 doubleColumn = column read
 
 data ETGPSData = ETGPSData { gpsLat :: Double
@@ -74,9 +73,11 @@ data ETGPSData = ETGPSData { gpsLat :: Double
 gpsData :: Session -> [ETGPSData]
 gpsData s@(Session _ names vals) =
   zipWith7 ETGPSData (fdc "GPSLat") (fdc "GPSLon") (ffc "GPSAlt") (ffc "GPSSpeed")
-                     (ffc "GPSCourse") (ffc "GPSDist") (fromJust $ intColumn "NumSats" s)
-  where fdc = fromJust . (flip doubleColumn) s
-        ffc = fromJust . (flip floatColumn) s
+                     (ffc "GPSCourse") (ffc "GPSDist") (fromRight $ intColumn "NumSats" s)
+  where fdc = fromRight . (flip doubleColumn) s
+        ffc = fromRight . (flip floatColumn) s
+        fromRight (Left x) = error (show x)
+        fromRight (Right x) = x
 
 -- | Retrieve a list of all possible column names.
 colNames :: Session -> [String]
