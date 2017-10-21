@@ -9,6 +9,7 @@ import Test.QuickCheck
 import Test.QuickCheck.Arbitrary
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BL
+import qualified Data.Map.Strict as Map
 
 import EagleTree
 
@@ -22,11 +23,14 @@ floatColumn l = assertEqual "" (replicate 3 "0.0") $ take 3 $ column id "GPSDist
 
 reddit l = assertEqual "" [4436, 291] $ map (length.colVals) l
 
+testColNames l = assertEqual "" ["Aileron_In","Aileron_Out","Airspeed"] $ take 3 $ (Map.keys.colNames) (last l)
+
 tests = [
   testCase "read the data" $ td reddit,
   testCase "string column" $ td stringColumn,
   testCase "int column" $ td intColumn,
-  testCase "float column" $ td floatColumn
+  testCase "float column" $ td floatColumn,
+  testCase "column names" $ td testColNames
   ]
   where td f = test_data >>= \d -> f (parseLog d)
 
