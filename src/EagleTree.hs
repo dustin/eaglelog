@@ -1,7 +1,8 @@
 module EagleTree
     ( parseLog
     , column
-    , Session(..)
+    , colNames
+    , Session
     ) where
 
 import qualified Data.ByteString as B
@@ -12,7 +13,7 @@ import Data.Char (isSpace)
 newtype SessionHeader = SessionHeader (Int, Int, String) deriving (Show)
 
 data Session = Session { name :: String
-                       , colNames :: Map.Map String Int
+                       , colNames_ :: Map.Map String Int
                        , colVals :: [String]
                        }
 
@@ -21,6 +22,9 @@ column f name (Session _ names vals) =
   case Map.lookup name names of
     Nothing -> []
     Just x -> map (f . (!! x) . words) vals
+
+colNames :: Session -> [String]
+colNames = Map.keys.colNames_
 
 instance Show Session where
   show (Session n cn cv) =
