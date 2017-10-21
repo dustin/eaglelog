@@ -1,10 +1,21 @@
+{-|
+Module      : EagleTree
+Description : Tool for accessing EagleTree logs.
+Copyright   : (c) Dustin Sallings, 2017
+Maintainer  : dustin@spy.net
+Stability   : experimental
+
+-}
+
 module EagleTree
     ( parseLog
+    , Session
+    -- * Session Value Accessors
+    -- $valueAccessors
     , column
     , intColumn
     , floatColumn
     , colNames
-    , Session
     ) where
 
 import qualified Data.ByteString as B
@@ -19,18 +30,25 @@ data Session = Session { name :: String
                        , colVals :: [String]
                        }
 
+-- | Return the values of a named column while performing arbitrary
+-- conversion on the input.
+--
+-- See `intColumn` and `floatColumn` for common use cases.
 column :: (String -> t) -> String -> Session -> [t]
 column f name (Session _ names vals) =
   case Map.lookup name names of
     Nothing -> []
     Just x -> map (f . (!! x) . words) vals
 
+-- | Return the values of a named column as ints.
 intColumn :: String -> Session -> [Int]
 intColumn = column read
 
+-- | Return the values of a named column as floats.
 floatColumn :: String -> Session -> [Float]
 floatColumn = column read
 
+-- | Retrieve a list of all possible column names.
 colNames :: Session -> [String]
 colNames = Map.keys.colNames_
 
@@ -38,6 +56,7 @@ instance Show Session where
   show (Session n cn cv) =
     n ++ " cols=" ++ show cn ++ ", " ++ show (length cv) ++ " readings"
 
+-- | Parse a log from a `BL.ByteString`.
 parseLog :: BL.ByteString -> [Session]
 parseLog f = let l = dropWhile (\l -> BL.unpack l /= "All Sessions") $ cleanLines f
                  (shdr, rest) = parseHeaders (drop 2 l)
