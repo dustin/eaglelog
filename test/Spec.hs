@@ -20,13 +20,22 @@ testIntColumn l = assertEqual "" (replicate 3 1486) $ take 3 $ intColumn "PackVo
 
 testFloatColumn l = assertEqual "" (replicate 3 0.0) $ take 3 $ floatColumn "GPSDist" (last l)
 
+testGPSData l = assertEqual "" (replicate 3 (ETGPSData {gpsLat = 36.988275
+                                                       , gpsLon = (-122.065895)
+                                                       , gpsAlt = 166
+                                                       , gpsSpeed = 0
+                                                       , gpsCourse = 273.2
+                                                       , gpsDist = 0
+                                                       , gpsNumSats = 15} )) $ take 3 $ gpsData (last l)
+
 testColNames l = assertEqual "" ["Aileron_In","Aileron_Out","Airspeed"] $ take 3 $ colNames (last l)
 
 tests = [
   testCase "string column" $ td testStringColumn,
   testCase "int column" $ td testIntColumn,
   testCase "float column" $ td testFloatColumn,
-  testCase "column names" $ td testColNames
+  testCase "column names" $ td testColNames,
+  testCase "GPS data" $ td testGPSData
   ]
   where td f = test_data >>= \d -> f (parseLog d)
 

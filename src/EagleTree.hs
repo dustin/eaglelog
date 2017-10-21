@@ -15,6 +15,9 @@ module EagleTree
     , column
     , intColumn
     , floatColumn
+    , doubleColumn
+    , ETGPSData(..)
+    , gpsData
     , colNames
     ) where
 
@@ -22,6 +25,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
 import Data.Char (isSpace)
+import Data.List (zip7)
 
 newtype SessionHeader = SessionHeader (Int, Int, String) deriving (Show)
 
@@ -51,6 +55,28 @@ intColumn = column read
 -- | Return the values of a named column as floats.
 floatColumn :: String -> Session -> [Float]
 floatColumn = column read
+
+-- | Return the values of a named column as doubles.
+doubleColumn :: String -> Session -> [Double]
+doubleColumn = column read
+
+data ETGPSData = ETGPSData { gpsLat :: Double
+                           , gpsLon :: Double
+                           , gpsAlt :: Float
+                           , gpsSpeed :: Float
+                           , gpsCourse :: Float
+                           , gpsDist :: Float
+                           , gpsNumSats :: Int
+                           } deriving (Show, Eq)
+
+-- | Get relevant GPS data from the session.
+gpsData :: Session -> [ETGPSData]
+gpsData s@(Session _ names vals) =
+  map mk $ zip7 (fdc "GPSLat") (fdc "GPSLon") (ffc "GPSAlt") (ffc "GPSSpeed")
+                (ffc "GPSCourse") (ffc "GPSDist") (intColumn "NumSats" s)
+  where fdc = flip doubleColumn s
+        ffc = flip floatColumn s
+        mk (a,b,c,d,e,f,g) = ETGPSData a b c d e f g
 
 -- | Retrieve a list of all possible column names.
 colNames :: Session -> [String]
