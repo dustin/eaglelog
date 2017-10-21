@@ -20,13 +20,13 @@ testIntColumn l = assertEqual "" (Right (replicate 3 1486)) $ take 3 <$> intColu
 
 testFloatColumn l = assertEqual "" (Right (replicate 3 0.0)) $ take 3 <$> floatColumn "GPSDist" (last l)
 
-testGPSData l = assertEqual "" (replicate 3 (ETGPSData {gpsLat = 36.988275
-                                                       , gpsLon = (-122.065895)
-                                                       , gpsAlt = 166
-                                                       , gpsSpeed = 0
-                                                       , gpsCourse = 273.2
-                                                       , gpsDist = 0
-                                                       , gpsNumSats = 15} )) $ take 3 $ gpsData (last l)
+testGPSData l = assertEqual "" (replicate 3 ETGPSData {gpsLat = 36.988275
+                                                      , gpsLon = -122.065895
+                                                      , gpsAlt = 166
+                                                      , gpsSpeed = 0
+                                                      , gpsCourse = 273.2
+                                                      , gpsDist = 0
+                                                      , gpsNumSats = 15} ) $ take 3 $ gpsData (last l)
 
 testColNames l = assertEqual "" ["Aileron_In","Aileron_Out","Airspeed"] $ take 3 $ colNames (last l)
 
