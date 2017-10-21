@@ -24,6 +24,7 @@ module EagleTree
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
+import Data.Maybe
 import Data.Char (isSpace)
 import Data.List (zipWith7)
 
@@ -42,22 +43,22 @@ instance Show Session where
 -- conversion on the input.
 --
 -- See `intColumn` and `floatColumn` for common use cases.
-column :: (String -> t) -> String -> Session -> [t]
+column :: (String -> t) -> String -> Session -> Maybe [t]
 column f name (Session _ names vals) =
   case Map.lookup name names of
-    Nothing -> []
-    Just x -> map (f . (!! x) . words) vals
+    Nothing -> Nothing
+    Just x -> Just $ map (f . (!! x) . words) vals
 
 -- | Return the values of a named column as ints.
-intColumn :: String -> Session -> [Int]
+intColumn :: String -> Session -> Maybe [Int]
 intColumn = column read
 
 -- | Return the values of a named column as floats.
-floatColumn :: String -> Session -> [Float]
+floatColumn :: String -> Session -> Maybe [Float]
 floatColumn = column read
 
 -- | Return the values of a named column as doubles.
-doubleColumn :: String -> Session -> [Double]
+doubleColumn :: String -> Session -> Maybe [Double]
 doubleColumn = column read
 
 data ETGPSData = ETGPSData { gpsLat :: Double
@@ -73,9 +74,9 @@ data ETGPSData = ETGPSData { gpsLat :: Double
 gpsData :: Session -> [ETGPSData]
 gpsData s@(Session _ names vals) =
   zipWith7 ETGPSData (fdc "GPSLat") (fdc "GPSLon") (ffc "GPSAlt") (ffc "GPSSpeed")
-                     (ffc "GPSCourse") (ffc "GPSDist") (intColumn "NumSats" s)
-  where fdc = flip doubleColumn s
-        ffc = flip floatColumn s
+                     (ffc "GPSCourse") (ffc "GPSDist") (fromJust $ intColumn "NumSats" s)
+  where fdc = fromJust . (flip doubleColumn) s
+        ffc = fromJust . (flip floatColumn) s
 
 -- | Retrieve a list of all possible column names.
 colNames :: Session -> [String]

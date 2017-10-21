@@ -14,11 +14,11 @@ import EagleTree
 
 test_data = BL.readFile "test/sample.FDR"
 
-testStringColumn l = assertEqual "" (replicate 3 "1486") $ take 3 $ column id "PackVolt*100" (last l)
+testStringColumn l = assertEqual "" (Just (replicate 3 "1486")) $ take 3 <$> column id "PackVolt*100" (last l)
 
-testIntColumn l = assertEqual "" (replicate 3 1486) $ take 3 $ intColumn "PackVolt*100" (last l)
+testIntColumn l = assertEqual "" (Just (replicate 3 1486)) $ take 3 <$> intColumn "PackVolt*100" (last l)
 
-testFloatColumn l = assertEqual "" (replicate 3 0.0) $ take 3 $ floatColumn "GPSDist" (last l)
+testFloatColumn l = assertEqual "" (Just (replicate 3 0.0)) $ take 3 <$> floatColumn "GPSDist" (last l)
 
 testGPSData l = assertEqual "" (replicate 3 (ETGPSData {gpsLat = 36.988275
                                                        , gpsLon = (-122.065895)
