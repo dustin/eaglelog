@@ -12,8 +12,6 @@ import qualified Data.ByteString.Lazy.Char8 as BL
 
 import EagleTree
 
-test_data = BL.readFile "test/sample.FDR"
-
 testStringColumn l = assertEqual "" (Right (replicate 3 "1486")) $ take 3 <$> column id "PackVolt*100" (last l)
 
 testIntColumn l = assertEqual "" (Right (replicate 3 1486)) $ take 3 <$> intColumn "PackVolt*100" (last l)
@@ -37,7 +35,7 @@ tests = [
   testCase "column names" $ td testColNames,
   testCase "GPS data" $ td testGPSData
   ]
-  where td f = test_data >>= \d -> f (parseLog d)
+  where td f = BL.readFile "test/sample.FDR" >>= \d -> f (parseLog d)
 
 main = do opts <- interpretArgsOrExit =<< getArgs
           defaultMainWithOpts tests
