@@ -28,12 +28,12 @@ testGPSData l = assertEqual "" (replicate 3 ETGPSData {gpsLat = 36.988275
 
 testColNames l = assertEqual "" ["Aileron_In","Aileron_Out","Airspeed"] $ take 3 $ colNames (last l)
 
-tests = [
-  testCase "string column" $ td testStringColumn,
-  testCase "int column" $ td testIntColumn,
-  testCase "float column" $ td testFloatColumn,
-  testCase "column names" $ td testColNames,
-  testCase "GPS data" $ td testGPSData
+tests = map (\(name, fun) -> testCase name (td fun)) [
+  ("string column", testStringColumn),
+  ("int column", testIntColumn),
+  ("float column", testFloatColumn),
+  ("column names", testColNames),
+  ("GPS data", testGPSData)
   ]
   where td f = BL.readFile "test/sample.FDR" >>= \d -> f (parseLog d)
 
