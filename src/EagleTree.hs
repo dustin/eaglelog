@@ -19,13 +19,18 @@ module EagleTree
     , ETGPSData(..)
     , gpsData
     , colNames
+    , rows
+    , ETRow
     ) where
 
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
 import Data.Char (isSpace)
 import Data.List (zipWith7)
+
+import Data.Csv (ToRecord(..), ToNamedRecord(..), namedRecord, record, (.=))
 
 newtype SessionHeader = SessionHeader (Int, Int, String) deriving (Show)
 
@@ -83,6 +88,21 @@ gpsData s@(Session _ _ _ vals) =
 -- | Retrieve a list of all possible column names.
 colNames :: Session -> [String]
 colNames = colNames_
+
+-- | Extract the individual rows from a session.
+rows :: Session -> [ETRow]
+rows s@(Session _ _ _ rs) = map (\r -> ETRow s r) rs
+
+-- | A row from within a session.
+data ETRow = ETRow Session String
+
+bcp = map BC.pack
+
+instance ToRecord ETRow where
+    toRecord (ETRow _ s) = record $ (bcp $ words s)
+
+instance ToNamedRecord ETRow where
+    toNamedRecord (ETRow s r) = namedRecord (map (uncurry (.=)) $ zip (bcp $ colNames s) (bcp $ words r))
 
 -- | Parse a log from a `BL.ByteString`.
 parseLog :: BL.ByteString -> [Session]
