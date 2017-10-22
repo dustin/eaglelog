@@ -26,7 +26,7 @@ testGPSData l = assertEqual "" (replicate 3 ETGPSData {gpsLat = 36.988275
                                                       , gpsDist = 0
                                                       , gpsNumSats = 15} ) $ take 3 $ gpsData (last l)
 
-testColNames l = assertEqual "" ["Aileron_In","Aileron_Out","Airspeed"] $ take 3 $ colNames (last l)
+testColNames l = assertEqual "" ["Milliseconds", "IsEvent", "EventError"] $ take 3 $ colNames (last l)
 
 tests = map (\(name, fun) -> testCase name (td fun)) [
   ("string column", testStringColumn),
