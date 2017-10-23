@@ -38,7 +38,7 @@ newtype SessionHeader = SessionHeader (Int, Int, String) deriving (Show)
 data Session = Session { name :: String
                        , colNames_ :: [String]
                        , colMap_ :: Map.Map String Int
-                       , colVals :: [String]
+                       , colVals :: [BL.ByteString]
                        }
 
 instance Show Session where
@@ -53,7 +53,7 @@ column :: (String -> t) -> String -> Session -> Either String [t]
 column f name (Session _ _ cm vals) =
   case Map.lookup name cm of
     Nothing -> Left $ "invalid column name: " ++ name
-    Just x -> Right $ map (f . (!! x) . words) vals
+    Just x -> Right $ map (f . BC.unpack . (!! x) . (BC.split ' ') . BL.toStrict) vals
 
 -- | Return the values of a named column as ints.
 intColumn :: String -> Session -> Either String [Int]
@@ -89,21 +89,22 @@ rows :: Session -> [ETRow]
 rows s@(Session _ _ _ rs) = map (ETRow s) rs
 
 -- | A row from within a session.
-data ETRow = ETRow Session String
+data ETRow = ETRow Session BL.ByteString
 
 bcp = map BC.pack
+bcw s = bcp $ (words . BL.unpack) s
 
 instance ToRecord ETRow where
-    toRecord (ETRow _ s) = record $ (bcp $ words s)
+    toRecord (ETRow _ s) = record $ (bcw s)
 
 instance ToNamedRecord ETRow where
-    toNamedRecord (ETRow s r) = namedRecord (map (uncurry (.=)) $ zip (bcp $ colNames s) (bcp $ words r))
+    toNamedRecord (ETRow s r) = namedRecord (map (uncurry (.=)) $ zip (bcp $ colNames s) (bcw r))
 
 -- | Extra the GPS fields from a row.
 gpsDatum :: ETRow -> ETGPSData
 gpsDatum (ETRow (Session _ _ cm _) r) = ETGPSData (c "GPSLat") (c "GPSLon") (c "GPSAlt") (c "GPSSpeed")
                                                   (c "GPSCourse") (c "GPSDist") (c "NumSats")
-  where w = words r
+  where w = (words . BL.unpack) r
         cw s = case Map.lookup s cm of
                 Nothing -> error "invalid column: " ++ s
                 Just x -> w !! x
@@ -115,7 +116,7 @@ parseLog f = let l = dropWhile (\l -> BL.unpack l /= "All Sessions") $ cleanLine
                  (shdr, rest) = parseHeaders (drop 2 l)
                  names = map BL.unpack (BL.words $ head rest)
                  cm = Map.fromList $ zip names [0..]
-                 readings = map BL.unpack $ tail rest in
+                 readings = tail rest in
                map (\ (SessionHeader (f, t, n)) -> Session n names cm $ take (t-f) . drop f $ readings) shdr
   where
     parseHeaders :: [BL.ByteString] -> ([SessionHeader], [BL.ByteString])
