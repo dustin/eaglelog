@@ -58,6 +58,7 @@ benchmark eaglelog-bench
                     , bytestring
                     , test-framework
                     , criterion
+                    , cassava
   ghc-options:        -O2
   default-language:    Haskell2010
 
