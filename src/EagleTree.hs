@@ -29,7 +29,6 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
 import Data.Char (isSpace)
-import Data.List (zipWith7)
 
 import Data.Csv (ToRecord(..), ToNamedRecord(..), namedRecord, record, (.=))
 
