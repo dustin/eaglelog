@@ -91,7 +91,7 @@ colNames = colNames_
 
 -- | Extract the individual rows from a session.
 rows :: Session -> [ETRow]
-rows s@(Session _ _ _ rs) = map (\r -> ETRow s r) rs
+rows s@(Session _ _ _ rs) = map (ETRow s) rs
 
 -- | A row from within a session.
 data ETRow = ETRow Session String
