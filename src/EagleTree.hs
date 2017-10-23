@@ -21,6 +21,7 @@ module EagleTree
     , colNames
     , rows
     , ETRow
+    , gpsDatum
     ) where
 
 import qualified Data.ByteString as B
@@ -77,13 +78,7 @@ data ETGPSData = ETGPSData { gpsLat :: Double
 
 -- | Get relevant GPS data from the session.
 gpsData :: Session -> [ETGPSData]
-gpsData s@(Session _ _ _ vals) =
-  zipWith7 ETGPSData (fdc "GPSLat") (fdc "GPSLon") (ffc "GPSAlt") (ffc "GPSSpeed")
-                     (ffc "GPSCourse") (ffc "GPSDist") (fromRight $ intColumn "NumSats" s)
-  where fdc = fromRight . flip doubleColumn s
-        ffc = fromRight . flip floatColumn s
-        fromRight (Left x) = error (show x)
-        fromRight (Right x) = x
+gpsData = map gpsDatum . rows
 
 -- | Retrieve a list of all possible column names.
 colNames :: Session -> [String]
@@ -103,6 +98,18 @@ instance ToRecord ETRow where
 
 instance ToNamedRecord ETRow where
     toNamedRecord (ETRow s r) = namedRecord (map (uncurry (.=)) $ zip (bcp $ colNames s) (bcp $ words r))
+
+-- | Extra the GPS fields from a row.
+gpsDatum :: ETRow -> ETGPSData
+gpsDatum (ETRow (Session _ _ cm _) r) = ETGPSData (cd "GPSLat") (cd "GPSLon") (cf "GPSAlt") (cf "GPSSpeed")
+                                                  (cf "GPSCourse") (cf "GPSDist") (ci "NumSats")
+  where w = words r
+        c s = case Map.lookup s cm of
+                Nothing -> error "invalid column: " ++ s
+                Just x -> w !! x
+        cd s = read (c s) :: Double
+        cf s = read (c s) :: Float
+        ci s = read (c s) :: Int
 
 -- | Parse a log from a `BL.ByteString`.
 parseLog :: BL.ByteString -> [Session]
