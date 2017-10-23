@@ -103,10 +103,9 @@ gpsDatum :: ETRow -> ETGPSData
 gpsDatum (ETRow (Session _ _ cm _) r) = ETGPSData (c "GPSLat") (c "GPSLon") (c "GPSAlt") (c "GPSSpeed")
                                                   (c "GPSCourse") (c "GPSDist") (c "NumSats")
   where w = (words . BL.unpack) r
-        cw s = case Map.lookup (BC.pack s) cm of
-                Nothing -> error "invalid column: " ++ s
-                Just x -> w !! x
-        c s = read (cw s)
+        c s = case Map.lookup (BC.pack s) cm of
+                Nothing -> error ("invalid column: " ++ s)
+                Just x -> read (w !! x)
 
 -- | Parse a log from a `BL.ByteString`.
 parseLog :: BL.ByteString -> [Session]
