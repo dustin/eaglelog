@@ -101,15 +101,13 @@ instance ToNamedRecord ETRow where
 
 -- | Extra the GPS fields from a row.
 gpsDatum :: ETRow -> ETGPSData
-gpsDatum (ETRow (Session _ _ cm _) r) = ETGPSData (cd "GPSLat") (cd "GPSLon") (cf "GPSAlt") (cf "GPSSpeed")
-                                                  (cf "GPSCourse") (cf "GPSDist") (ci "NumSats")
+gpsDatum (ETRow (Session _ _ cm _) r) = ETGPSData (c "GPSLat") (c "GPSLon") (c "GPSAlt") (c "GPSSpeed")
+                                                  (c "GPSCourse") (c "GPSDist") (c "NumSats")
   where w = words r
-        c s = case Map.lookup s cm of
+        cw s = case Map.lookup s cm of
                 Nothing -> error "invalid column: " ++ s
                 Just x -> w !! x
-        cd s = read (c s) :: Double
-        cf s = read (c s) :: Float
-        ci s = read (c s) :: Int
+        c s = read (cw s)
 
 -- | Parse a log from a `BL.ByteString`.
 parseLog :: BL.ByteString -> [Session]
