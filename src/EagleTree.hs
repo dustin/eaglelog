@@ -92,7 +92,7 @@ rows s@(Session _ _ _ rs) = map (ETRow s) rs
 data ETRow = ETRow Session BL.ByteString
 
 bcp = map BC.pack
-bcw s = bcp $ (words . BL.unpack) s
+bcw s = (BC.split ' ' . BL.toStrict) s
 
 instance ToRecord ETRow where
     toRecord (ETRow _ s) = record $ (bcw s)
