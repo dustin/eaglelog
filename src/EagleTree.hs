@@ -52,7 +52,7 @@ column :: (String -> t) -> String -> Session -> Either String [t]
 column f name (Session _ _ cm vals) =
   case Map.lookup (BC.pack name) cm of
     Nothing -> Left $ "invalid column name: " ++ name
-    Just x -> Right $ map (f . BC.unpack . (!! x) . (BC.split ' ') . BL.toStrict) vals
+    Just x -> Right $ map (f . BL.unpack . (!! x) . BL.words) vals
 
 -- | Return the values of a named column as ints.
 intColumn :: String -> Session -> Either String [Int]
