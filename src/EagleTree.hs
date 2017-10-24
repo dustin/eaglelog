@@ -24,20 +24,18 @@ module EagleTree
     , gpsDatum
     ) where
 
-import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
-import Data.Char (isSpace)
 
 import Data.Csv (ToRecord(..), ToNamedRecord(..), namedRecord, record, (.=))
 
 newtype SessionHeader = SessionHeader (Int, Int, String) deriving (Show)
 
-data Session = Session { name :: String
-                       , colNames_ :: [BC.ByteString]
-                       , colMap_ :: Map.Map BC.ByteString Int
-                       , colVals :: [BL.ByteString]
+data Session = Session { _name :: String
+                       , _colNames :: [BC.ByteString]
+                       , _colMap :: Map.Map BC.ByteString Int
+                       , _colVals :: [BL.ByteString]
                        }
 
 instance Show Session where
@@ -81,7 +79,7 @@ gpsData = map gpsDatum . rows
 
 -- | Retrieve a list of all possible column names.
 colNames :: Session -> [String]
-colNames = map BC.unpack . colNames_
+colNames = map BC.unpack . _colNames
 
 -- | Extract the individual rows from a session.
 rows :: Session -> [ETRow]
@@ -90,13 +88,14 @@ rows s@(Session _ _ _ rs) = map (ETRow s) rs
 -- | A row from within a session.
 data ETRow = ETRow Session BL.ByteString
 
+bcw :: BL.ByteString -> [BC.ByteString]
 bcw = BC.split ' ' . BL.toStrict
 
 instance ToRecord ETRow where
     toRecord (ETRow _ s) = record $ bcw s
 
 instance ToNamedRecord ETRow where
-    toNamedRecord (ETRow s r) = namedRecord (zipWith (.=) (colNames_ s) (bcw r))
+    toNamedRecord (ETRow s r) = namedRecord (zipWith (.=) (_colNames s) (bcw r))
 
 -- | Extra the GPS fields from a row.
 gpsDatum :: ETRow -> ETGPSData
@@ -109,12 +108,12 @@ gpsDatum (ETRow (Session _ _ cm _) r) = ETGPSData (c "GPSLat") (c "GPSLon") (c "
 
 -- | Parse a log from a `BL.ByteString`.
 parseLog :: BL.ByteString -> [Session]
-parseLog f = let l = dropWhile (\l -> BL.unpack l /= "All Sessions") $ cleanLines f
+parseLog f = let l = dropWhile (\l' -> BL.unpack l' /= "All Sessions") $ cleanLines f
                  (shdr, rest) = parseHeaders (drop 2 l)
                  names = map BL.toStrict (BL.words $ head rest)
                  cm = Map.fromList $ zip names [0..]
                  readings = tail rest in
-               map (\ (SessionHeader (f, t, n)) -> Session n names cm $ take (t-f) . drop f $ readings) shdr
+               map (\ (SessionHeader (f', t, n)) -> Session n names cm $ take (t-f') . drop f' $ readings) shdr
   where
     parseHeaders :: [BL.ByteString] -> ([SessionHeader], [BL.ByteString])
     parseHeaders = let go h l@(a:b:rest) =
@@ -122,7 +121,8 @@ parseLog f = let l = dropWhile (\l -> BL.unpack l /= "All Sessions") $ cleanLine
                              name = a in
                            if length nums == 2 then
                              go (SessionHeader(readbs nums 0, readbs nums 1, BL.unpack name):h) rest
-                           else (reverse h, l) in
+                           else (reverse h, l)
+                       go _ _ = error "Incomplete header" in
                      go []
 
     readbs :: Read a => [BL.ByteString] -> Int -> a
