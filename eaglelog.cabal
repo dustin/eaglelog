@@ -22,6 +22,7 @@ library
                      , containers
                      , vector
                      , cassava
+                     , deepseq
   default-language:    Haskell2010
   ghc-options:       -Wall
 

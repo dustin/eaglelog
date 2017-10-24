@@ -14,7 +14,7 @@ import Criterion.Main
 
 benchStringColumn logData = bench "string column" $ whnf (column id "PackVolt*100") logData
 benchIntColumn logData    = bench "int column" $ whnf (intColumn "PackVolt*100") logData
-benchGPSData logData      = bench "gps data" $ whnf gpsData logData
+benchGPSData logData      = bench "gps data" $ nf gpsData logData
 benchCSV logData          = bench "csv" $ whnf encode (rows logData)
 
 main = do

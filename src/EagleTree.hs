@@ -27,6 +27,7 @@ module EagleTree
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
+import Control.DeepSeq (NFData(..))
 
 import Data.Csv (ToRecord(..), ToNamedRecord(..), namedRecord, record, (.=))
 
@@ -72,6 +73,8 @@ data ETGPSData = ETGPSData { gpsLat :: Double
                            , gpsDist :: Float
                            , gpsNumSats :: Int
                            } deriving (Show, Eq)
+
+instance NFData ETGPSData where rnf g = seq g ()
 
 -- | Get relevant GPS data from the session.
 gpsData :: Session -> [ETGPSData]
