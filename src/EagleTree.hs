@@ -52,7 +52,7 @@ column :: (String -> t) -> String -> Session -> Either String [t]
 column f name (Session _ _ cm vals) =
   case Map.lookup (BC.pack name) cm of
     Nothing -> Left $ "invalid column name: " ++ name
-    Just x -> Right $ map (f . BL.unpack . (!! x) . BL.words) vals
+    Just x -> Right $ map (f . BC.unpack . (!! x) . (BC.split ' ') . BL.toStrict) vals
 
 -- | Return the values of a named column as ints.
 intColumn :: String -> Session -> Either String [Int]
@@ -90,13 +90,13 @@ rows s@(Session _ _ _ rs) = map (ETRow s) rs
 -- | A row from within a session.
 data ETRow = ETRow Session BL.ByteString
 
-bcw s = (BC.split ' ' . BL.toStrict) s
+bcw = BC.split ' ' . BL.toStrict
 
 instance ToRecord ETRow where
-    toRecord (ETRow _ s) = record $ (bcw s)
+    toRecord (ETRow _ s) = record $ bcw s
 
 instance ToNamedRecord ETRow where
-    toNamedRecord (ETRow s r) = namedRecord (map (uncurry (.=)) $ zip (colNames_ s) (bcw r))
+    toNamedRecord (ETRow s r) = namedRecord (zipWith (.=) (colNames_ s) (bcw r))
 
 -- | Extra the GPS fields from a row.
 gpsDatum :: ETRow -> ETGPSData
