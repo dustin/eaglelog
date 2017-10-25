@@ -74,7 +74,9 @@ data ETGPSData = ETGPSData { gpsLat :: Double
                            , gpsNumSats :: Int
                            } deriving (Show, Eq)
 
-instance NFData ETGPSData where rnf g = seq g ()
+instance NFData ETGPSData where
+  rnf e@(ETGPSData la lo al sp c d n) =
+    seq la seq lo seq al seq sp seq c seq d seq n seq e ()
 
 -- | Get relevant GPS data from the session.
 gpsData :: Session -> [ETGPSData]
