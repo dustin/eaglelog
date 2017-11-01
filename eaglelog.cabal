@@ -59,7 +59,6 @@ benchmark eaglelog-bench
   build-depends:      base
                     , eaglelog
                     , bytestring
-                    , test-framework
                     , criterion
                     , cassava
                     , parallel
