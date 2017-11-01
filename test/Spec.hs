@@ -1,11 +1,10 @@
-import System.Environment (getArgs)
-import Test.Framework (Test, defaultMainWithOpts, interpretArgsOrExit)
-import Test.Framework.Providers.HUnit
-import Test.Framework.Runners.Options
-import Test.HUnit (Assertion, assertEqual)
 import qualified Data.Vector as V
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BL
+
+import Test.QuickCheck.Arbitrary ()
+import Test.Tasty
+import Test.Tasty.HUnit
 
 import Data.Csv (encode, encodeByName)
 
@@ -44,7 +43,7 @@ testCSVNamedRecord l = assertEqual "" x $ BL.unpack.encodeByName (v ["Millisecon
   where v = V.fromList . map BC.pack
         x = "Milliseconds,IsEvent,EventError\r\n443700,1,50\r\n"
 
-tests :: [Test]
+tests :: [TestTree]
 tests = map (\(name, fun) -> testCase name (td fun)) [
   ("string column", testStringColumn),
   ("int column", testIntColumn),
@@ -58,6 +57,4 @@ tests = map (\(name, fun) -> testCase name (td fun)) [
   where td f = BL.readFile "test/sample.FDR" >>= \d -> f (parseLog d)
 
 main :: IO ()
-main = do opts <- interpretArgsOrExit =<< getArgs
-          defaultMainWithOpts tests
-            opts { ropt_hide_successes = Just True }
+main = defaultMain $ testGroup "All Tests" tests
