@@ -132,6 +132,6 @@ parseLog f = let l = dropWhile (\l' -> BL.unpack l' /= "All Sessions") $ cleanLi
                      go []
 
     readbs :: Read a => [BL.ByteString] -> Int -> a
-    readbs l i = read $ BL.unpack $ l !! i
+    readbs l i = read . BL.unpack $ l !! i
 
     cleanLines = map (BL.filter ('\r' /=)) . BL.lines
