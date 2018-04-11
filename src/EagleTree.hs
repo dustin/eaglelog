@@ -28,6 +28,7 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
 import Control.DeepSeq (NFData(..))
+import Data.Semigroup ((<>))
 
 import Data.Csv (ToRecord(..), ToNamedRecord(..), namedRecord, record, (.=))
 
@@ -41,7 +42,7 @@ data Session = Session { _name :: String
 
 instance Show Session where
   show (Session n cn _ cv) =
-    n ++ " cols=" ++ show cn ++ ", " ++ show (length cv) ++ " readings"
+    n <> " cols=" <> show cn <> ", " <> show (length cv) <> " readings"
 
 -- | Return the values of a named column while performing arbitrary
 -- conversion on the input.
@@ -50,7 +51,7 @@ instance Show Session where
 column :: (String -> t) -> String -> Session -> Either String [t]
 column f name (Session _ _ cm vals) =
   case Map.lookup (BC.pack name) cm of
-    Nothing -> Left $ "invalid column name: " ++ name
+    Nothing -> Left $ "invalid column name: " <> name
     Just x -> Right $ map (f . BL.unpack . (!! x) . BL.words) vals
 
 -- | Return the values of a named column as ints.
@@ -108,7 +109,7 @@ gpsDatum (ETRow (Session _ _ cm _) r) = ETGPSData (c "GPSLat") (c "GPSLon") (c "
                                                   (c "GPSCourse") (c "GPSDist") (c "NumSats")
   where w = (words . BL.unpack) r
         c s = case Map.lookup (BC.pack s) cm of
-                Nothing -> error ("invalid column: " ++ s)
+                Nothing -> error ("invalid column: " <> s)
                 Just x -> read (w !! x)
 
 -- | Parse a log from a `BL.ByteString`.
