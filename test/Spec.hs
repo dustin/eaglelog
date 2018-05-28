@@ -35,7 +35,7 @@ testColNames :: [Session] -> Assertion
 testColNames l = assertEqual "" ["Milliseconds", "IsEvent", "EventError"] $ (take 3 . colNames . last) l
 
 testRows :: [Session] -> Assertion
-testRows l = assertEqual "" 291 $ (length.rows.last) l
+testRows l = assertEqual "" [4436, 291] $ map (length.rows) l
 
 testCSVRecord :: [Session] -> Assertion
 testCSVRecord l = assertEqual "" x $ (BL.unpack.encode.take 1.rows.last) l
