@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 {-|
 Module      : EagleTree
 Description : Tool for accessing EagleTree logs.
@@ -44,6 +46,28 @@ instance Show Session where
   show (Session n cn _ cv) =
     n <> " cols=" <> show cn <> ", " <> show (length cv) <> " readings"
 
+doubleTransform :: (Double -> Double) -> BL.ByteString -> BL.ByteString
+doubleTransform f = BL.pack . show . f . read . BL.unpack
+
+-- Rewrite columns.
+translate :: BC.ByteString -> (BL.ByteString -> BL.ByteString)
+translate x
+  | x == "Altitude" = feetToMeters
+  | x == "GPSAlt" = feetToMeters
+  | x == "GPSDist" = feetToMeters
+  | x == "TempSensor" = f2c
+  | x == "AmbientTemp" = f2c
+  | x == "GPSSpeed" = mph2kph
+  | x == "AirSpeed" = mph2kph
+  | "*100" `BC.isSuffixOf` x = doubleTransform (/100)
+  | "*10" `BC.isSuffixOf` x = doubleTransform (/10)
+  | otherwise = id
+
+  where
+    feetToMeters = doubleTransform (* 0.3048)
+    f2c = doubleTransform (\f -> (f - 32) * 5 / 9)
+    mph2kph = doubleTransform (* 1.60934)
+
 -- | Return the values of a named column while performing arbitrary
 -- conversion on the input.
 --
@@ -52,7 +76,7 @@ column :: (String -> t) -> String -> Session -> Either String [t]
 column f name (Session _ _ cm vals) =
   case Map.lookup (BC.pack name) cm of
     Nothing -> Left $ "invalid column name: " <> name
-    Just x -> Right $ map (f . BL.unpack . (!! x) . BL.words) vals
+    Just x -> Right $ map (f . BL.unpack . translate (BC.pack name) . (!! x) . BL.words) vals
 
 -- | Return the values of a named column as ints.
 intColumn :: String -> Session -> Either String [Int]
@@ -85,7 +109,7 @@ gpsData = map gpsDatum . rows
 
 -- | Retrieve a list of all possible column names.
 colNames :: Session -> [String]
-colNames = map BC.unpack . _colNames
+colNames = map (BC.unpack . colNameMap) . _colNames
 
 -- | Extract the individual rows from a session.
 rows :: Session -> [ETRow]
@@ -94,14 +118,24 @@ rows s@(Session _ _ _ rs) = map (ETRow s) rs
 -- | A row from within a session.
 data ETRow = ETRow Session BL.ByteString
 
-bcw :: BL.ByteString -> [BC.ByteString]
-bcw = BC.split ' ' . BL.toStrict
+bcw :: Session -> BL.ByteString -> [BC.ByteString]
+bcw sess row = map (\(f,v) -> f v) $ zip (map t (_colNames sess)) $ BC.split ' ' . BL.toStrict $ row
+
+  where
+    t :: BC.ByteString -> (BC.ByteString -> BC.ByteString)
+    t n = BL.toStrict . translate n . BL.fromStrict
 
 instance ToRecord ETRow where
-    toRecord (ETRow _ s) = record $ bcw s
+    toRecord (ETRow sess s) = record $ bcw sess s
+
+colNameMap :: BC.ByteString -> BC.ByteString
+colNameMap "File_Creation_Date_and_GPS_Local_Time" = "GPSTime"
+colNameMap x = case BC.elemIndex '*' x of
+                 Nothing -> x
+                 Just n -> BC.take n x
 
 instance ToNamedRecord ETRow where
-    toNamedRecord (ETRow s r) = namedRecord (zipWith (.=) (_colNames s) (bcw r))
+    toNamedRecord (ETRow s r) = namedRecord (zipWith (.=) (map BC.pack $ colNames s) (bcw s r))
 
 -- | Extra the GPS fields from a row.
 gpsDatum :: ETRow -> ETGPSData
