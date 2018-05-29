@@ -15,7 +15,7 @@ import qualified Data.Vector as V
 
 writeCSV :: Int -> Session -> IO ()
 writeCSV i sess = withFile ("session_" ++ show i ++ ".csv") WriteMode wr
-  where wr h = (BL.hPut h) . encodeByName names $ rows sess
+  where wr h = BL.hPut h . encodeByName names $ rows sess
         names = V.fromList . map BC.pack $ colNames sess
 
 kmlTop :: String
@@ -53,7 +53,7 @@ writeKML :: Int -> Session -> IO ()
 writeKML i sess = withFile ("session_" ++ show i ++ ".kml") WriteMode wr
   where wr h = do
           hPutStr h kmlTop
-          (BL.hPut h) . encodeByNameWith defaultEncodeOptions {
+          BL.hPut h . encodeByNameWith defaultEncodeOptions {
             encUseCrLf=False,
             encIncludeHeader=False
             } (V.fromList ["GPSLon", "GPSLat", "GPSAlt"]) $ rows sess
