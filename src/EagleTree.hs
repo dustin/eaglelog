@@ -29,6 +29,7 @@ module EagleTree
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
+import Text.Read (readMaybe)
 import Control.DeepSeq (NFData(..))
 import Data.Semigroup ((<>))
 
@@ -47,7 +48,9 @@ instance Show Session where
     n <> " cols=" <> show cn <> ", " <> show (length cv) <> " readings"
 
 doubleTransform :: (Double -> Double) -> BL.ByteString -> BL.ByteString
-doubleTransform f = BL.pack . show . f . read . BL.unpack
+doubleTransform f s = case (readMaybe . BL.unpack) s of
+                        Nothing -> s
+                        Just x -> (BL.pack . show . f) x
 
 -- Rewrite columns.
 translate :: BC.ByteString -> (BL.ByteString -> BL.ByteString)
