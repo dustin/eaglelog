@@ -26,12 +26,13 @@ module EagleTree
     , gpsDatum
     ) where
 
+import Control.DeepSeq (NFData(..))
+import Data.Maybe (fromMaybe)
+import Data.Semigroup ((<>))
+import Text.Read (readMaybe)
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Map.Strict as Map
-import Text.Read (readMaybe)
-import Control.DeepSeq (NFData(..))
-import Data.Semigroup ((<>))
 
 import Data.Csv (ToRecord(..), ToNamedRecord(..), namedRecord, record, (.=))
 
@@ -48,9 +49,7 @@ instance Show Session where
     n <> " cols=" <> show cn <> ", " <> show (length cv) <> " readings"
 
 doubleTransform :: (Double -> Double) -> BL.ByteString -> BL.ByteString
-doubleTransform f s = case (readMaybe . BL.unpack) s of
-                        Nothing -> s
-                        Just x -> (BL.pack . show . f) x
+doubleTransform f s = fromMaybe s $ (BL.pack . show . f) <$> (readMaybe . BL.unpack) s
 
 -- Rewrite columns.
 translate :: BC.ByteString -> (BL.ByteString -> BL.ByteString)
